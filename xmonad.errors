@@ -1,0 +1,31 @@
+
+xmonad.hs:159:8: error:
+    • Couldn't match expected type ‘X String’
+                  with actual type ‘[String] -> String’
+    • Probable cause: ‘Rofi.asCommand’ is applied to too few arguments
+      In a stmt of a 'do' block: w <- Rofi.asCommand (M.keys wm)
+      In the expression:
+        do wm <- windowMap
+           w <- Rofi.asCommand (M.keys wm)
+           whenJust (M.lookup w wm) bringRestored
+      In an equation for ‘bringRestoredWindow’:
+          bringRestoredWindow
+            = do wm <- windowMap
+                 w <- Rofi.asCommand (M.keys wm)
+                 whenJust (M.lookup w wm) bringRestored
+    |
+159 |   w <- Rofi.asCommand (M.keys wm)
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+xmonad.hs:159:24: error:
+    • Couldn't match expected type ‘Rofi.RofiConfig’
+                  with actual type ‘[String]’
+    • In the first argument of ‘Rofi.asCommand’, namely ‘(M.keys wm)’
+      In a stmt of a 'do' block: w <- Rofi.asCommand (M.keys wm)
+      In the expression:
+        do wm <- windowMap
+           w <- Rofi.asCommand (M.keys wm)
+           whenJust (M.lookup w wm) bringRestored
+    |
+159 |   w <- Rofi.asCommand (M.keys wm)
+    |                        ^^^^^^^^^
