@@ -137,47 +137,14 @@ myLayout =  spacingRaw True (Border 0 1 1 1) True (Border 1 1 1 1) True $ minimi
         tiled_ratio = 1/2
 
 
-myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
-
-    -- mod-button1, Set the window to floating mode and move by dragging
-    [ 
-    -- ((modMask, 1), (\w -> focus w >> mouseMoveWindow w >> windows W.shiftMaster))
-
-    -- -- mod-button2, Raise the window to the top of the stack
-    -- , ((modMask, 2), (\w -> focus w >> windows W.shiftMaster))
-
-    -- -- mod-button3, Set the window to floating mode and resize by dragging
-    -- , ((modMask, 3), (\w -> focus w >> mouseResizeWindow w >> windows W.shiftMaster))
-
-    ]
+myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.empty
 
 myLauncher = "rofi"
 
 minimizedWindows = withMinimized return
-bringRestored :: Window -> X ()
-bringRestored w = do
-  maximizeWindowAndFocus w
 
--- bringRestoredWindow::()->X()
-bringRestoredWindow = do
-  wm <- windowMap
-  -- wm <-  ( XS.gets hasTag "Minimized")
-  -- w <- 
-  -- bringMenuArgs' "rofi" ["-dmenu", "-i", "-show", "combi"]
-  -- wm <- filter(\w -> get(hasTag "Minimized" w)) (get (windowMap))
-  key <- menuArgs "rofi" ["-dmenu", "-i", "-show", "combi"] (M.keys wm)
-
-  -- return $ whenJust (get (M.lookup key wm)) bringRestored
-  whenJust (M.lookup key wm) bringRestored
-  -- "rofi -dmenu -show" bringMenuArgs' (M.keys wm)
-  -- w <- Maybe.fromMaybe (return ()) temp
-  -- whenJust (M.lookup w wm) bringRestored
 minimizeFocused :: Window -> X ()
 minimizeFocused w = do
-  -- ("Minimized", w) addTag
-  -- w (addTag "Minimized")
-  -- withFocused (addTag "Minimized")
-  -- withFocused minimizeWindow
   withFocused minimizeWindow
 
 promptRestoreWindow = do
@@ -186,13 +153,6 @@ promptRestoreWindow = do
       -- win <- Rofi.promptSimple def (M.keys shownWindows)
       win <- menuArgs "rofi" ["-dmenu", "-i", "-show", "combi"] (M.keys shownWindows)
       whenJust (M.lookup win wm) (\w -> maximizeWindow w >> (windows $ bringWindow w))
-
-
--- restoreTag tag = do
---   wm <- filter(\w -> tag hasTag w) (windowMap)
---   w <- dmenu (M.keys wm)
---   -- w <- Maybe.fromMaybe (return ()) temp
---   whenJust (M.lookup w wm) bringRestored
 
 
 
@@ -236,14 +196,6 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   , ((modMask .|. mod1Mask, xK_t), spawn $ "variety -t" )
   , ((modMask .|. mod1Mask, xK_Left), spawn $ "variety -p" )
   , ((modMask .|. mod1Mask, xK_Right), spawn $ "variety -n" )
-
-  --VARIETY KEYS WITH PYWAL
-
---   , ((mod1Mask .|. shiftMask , xK_f ), spawn $ "variety -f && wal -i $(cat $HOME/.config/variety/wallpaper/wallpaper.jpg.txt)&")
---   , ((mod1Mask .|. shiftMask , xK_n ), spawn $ "variety -n && wal -i $(cat $HOME/.config/variety/wallpaper/wallpaper.jpg.txt)&")
---   , ((mod1Mask .|. shiftMask , xK_p ), spawn $ "variety -p && wal -i $(cat $HOME/.config/variety/wallpaper/wallpaper.jpg.txt)&")
---   , ((mod1Mask .|. shiftMask , xK_t ), spawn $ "variety -t && wal -i $(cat $HOME/.config/variety/wallpaper/wallpaper.jpg.txt)&")
---   , ((mod1Mask .|. shiftMask , xK_u ), spawn $ "wal -i $(cat $HOME/.config/variety/wallpaper/wallpaper.jpg.txt)&")
 
   --CONTROL + SHIFT KEYS
 
@@ -298,25 +250,27 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   , ((modMask, xK_Left), windows W.focusUp  )
 
   -- Move focus to the master window.
-  , ((modMask .|. shiftMask, xK_m), windows W.focusMaster  )
+  -- , ((modMask .|. shiftMask, xK_m), windows W.focusMaster  )
 
   -- Swap the focused window with the next window.
 --   , ((modMask .|. shiftMask, xK_j), windows W.swapDown  )
 
   -- Swap the focused window with the next window.
-  , ((controlMask .|. modMask, xK_Down), windows W.swapDown  )
+  -- , ((controlMask .|. modMask, xK_Down), windows W.swapDown  )
 
   -- Swap the focused window with the previous window.
 --   , ((modMask .|. shiftMask, xK_k), windows W.swapUp    )
 
   -- Swap the focused window with the previous window.
   , ((shiftMask .|. modMask, xK_Left), windows W.swapUp  )
+  
+  , ((shiftMask .|. modMask, xK_Right), windows W.swapDown  )
 
   -- Shrink the master area.
-  , ((controlMask .|. modMask , xK_h), sendMessage Shrink)
+  , ((controlMask .|. modMask , xK_Left), sendMessage Shrink)
 
   -- Expand the master area.
-  , ((controlMask .|. modMask , xK_l), sendMessage Expand)
+  , ((controlMask .|. modMask , xK_Right), sendMessage Expand)
 
 
   , ((modMask, xK_m), withFocused minimizeWindow)
