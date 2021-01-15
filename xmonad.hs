@@ -194,7 +194,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   , ((modMask, xK_c), spawn $ "conky-toggle" )
   , ((modMask, xK_f), sendMessage $ Toggle NBFULL)
   , ((modMask .|. mod1Mask, xK_h), namedScratchpadAction scratchpads "htop" )
-  , ((modMask .|. mod1Mask, xK_t), namedScratchpadAction scratchpads "scratchTerm" )
+  , ((modMask .|. mod1Mask, xK_t), namedScratchpadAction scratchpads "scratchTerminal" )
   , ((modMask, xK_q), kill )
   , ((modMask, xK_y), spawn $ "polybar-msg cmd toggle" )
   , ((modMask, xK_x), spawn $ "arcolinux-logout" )
@@ -211,18 +211,20 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   , ((modMask .|. shiftMask , xK_Return ), spawn $ "thunar")
   , ((modMask .|. shiftMask , xK_d ), spawn $ "dmenu_run -i -nb '#191919' -nf '#79d4ed' -sb '#fea63c' -sf '#79d4ed' -fn 'NotoMonoRegular:bold:pixelsize=14'")
   , ((modMask .|. shiftMask , xK_r ), spawn $ "xmonad --recompile && xmonad --restart")
-  , ((modMask .|. shiftMask , xK_s ), spawn $ "rofi -combi-modi window,drun -show combi -modi combi")
+  , ((modMask .|. shiftMask , xK_s ), spawn $ "rofi -show run")
+
+  , ((modMask .|. shiftMask .|. mod1Mask, xK_s ), spawn $ "rofi -combi-modi window,drun -show combi -modi combi")
 
   -- CONTROL + ALT KEYS
 
   -- ALT + ... KEYS
 
-  , ((modMask .|. mod1Mask, xK_f), spawn $ "variety -f" )
-  , ((modMask .|. mod1Mask, xK_n), spawn $ "variety -n" )
-  , ((modMask .|. mod1Mask, xK_p), spawn $ "variety -p" )
-  , ((modMask .|. mod1Mask, xK_t), spawn $ "variety -t" )
-  , ((modMask .|. mod1Mask, xK_Left), spawn $ "variety -p" )
-  , ((modMask .|. mod1Mask, xK_Right), spawn $ "variety -n" )
+  -- , ((modMask .|. mod1Mask, xK_f), spawn $ "variety -f" )
+  -- , ((modMask .|. mod1Mask, xK_n), spawn $ "variety -n" )
+  -- , ((modMask .|. mod1Mask, xK_p), spawn $ "variety -p" )
+  -- , ((modMask .|. mod1Mask, xK_t), spawn $ "variety -t" )
+  -- , ((modMask .|. mod1Mask, xK_Left), spawn $ "variety -p" )
+  -- , ((modMask .|. mod1Mask, xK_Right), spawn $ "variety -n" )
 
   --CONTROL + SHIFT KEYS
 
