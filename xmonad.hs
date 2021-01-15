@@ -28,6 +28,13 @@ import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.IndependentScreens
 import XMonad.Layout.NoBorders (noBorders, smartBorders)
+import XMonad.Layout.Grid
+import XMonad.Layout.BinarySpacePartition
+import XMonad.Actions.MouseResize
+import XMonad.Layout.WindowArranger
+import Data.Monoid
+import XMonad.Hooks.ManageHelpers
+
 
 
 import XMonad.Layout.CenteredMaster(centerMaster)
@@ -62,6 +69,8 @@ import XMonad.Actions.TagWindows (addTag, hasTag, delTag, withTaggedGlobalP)
 import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Layout.Hidden
 import qualified Rofi
+import XMonad.Util.NamedScratchpad
+import XMonad.ManageHook
 
 
 
@@ -129,7 +138,8 @@ myManageHook = composeAll . concat $
 
 
 
-myLayout =  spacingRaw True (Border 0 1 1 1) True (Border 1 1 1 1) True $ minimize $ maximize $ avoidStruts $ mkToggle (NBFULL ?? NOBORDERS ?? EOT) $ tiled ||| Mirror tiled ||| spiral (6/7)  ||| ThreeColMid 1 (3/100) (1/2) ||| Full
+-- myLayout =  spacingRaw True (Border 0 1 1 1) True (Border 1 1 1 1) True $ minimize $ maximize $ avoidStruts $ mkToggle (NBFULL ?? NOBORDERS ?? EOT) $ tiled ||| Mirror tiled ||| spiral (6/7)  ||| ThreeColMid 1 (3/100) (1/2) ||| Full
+myLayout =  spacingRaw True (Border 0 1 1 1) True (Border 1 1 1 1) True $ minimize $ maximize $ avoidStruts $ mkToggle (NBFULL ?? NOBORDERS ?? EOT) $ tiled ||| Grid ||| emptyBSP  ||| ThreeColMid 1 (3/100) (1/2) ||| Full
     where
         tiled = Tall nmaster delta tiled_ratio
         nmaster = 1
@@ -150,10 +160,26 @@ minimizeFocused w = do
 promptRestoreWindow = do
       wm <- windowMap
       shownWindows <- withMinimized (\minimizedWindows -> pure $ M.filter (`elem` minimizedWindows) wm)
-      -- win <- Rofi.promptSimple def (M.keys shownWindows)
       win <- menuArgs "rofi" ["-dmenu", "-i", "-show", "combi"] (M.keys shownWindows)
       whenJust (M.lookup win wm) (\w -> maximizeWindow w >> (windows $ bringWindow w))
 
+
+
+
+fullFloatFocused = withFocused $ \f -> windows =<< appEndo `fmap` runQuery doFullFloat f
+rectFloatFocused = withFocused $ \f -> windows =<< appEndo `fmap` runQuery (doRectFloat $ W.RationalRect 0.05 0.05 0.9 0.9) f
+scratchpads = [
+-- run htop in xterm, find it by title, use default floating window placement
+  NS "htop" "termite -e htop" (title =? "htop") (customFloating $ W.RationalRect (1/6) (1/6) (2/3) (2/3))
+
+
+  , NS "scratchTerminal" "termite --title 'scratchTerminal'" (title =? "scratchTerminal") (customFloating $ W.RationalRect (1/6) (1/6) (2/3) (2/3))
+    -- NS "htop" "termite -e htop" (title =? "htop") defaultFloating
+
+
+-- run gvim, find by role, don't float
+    -- . NS "notes" "gvim --role notes ~/notes.txt" (role =? "notes") nonFloating
+    ] where role = stringProperty "WM_WINDOW_ROLE"
 
 
 
@@ -167,13 +193,14 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   , ((modMask, xK_w), spawn $ "google-chrome-stable" )
   , ((modMask, xK_c), spawn $ "conky-toggle" )
   , ((modMask, xK_f), sendMessage $ Toggle NBFULL)
-  , ((modMask, xK_h), spawn $ "urxvt 'htop task manager' -e htop" )
+  , ((modMask .|. mod1Mask, xK_h), namedScratchpadAction scratchpads "htop" )
+  , ((modMask .|. mod1Mask, xK_t), namedScratchpadAction scratchpads "scratchTerm" )
   , ((modMask, xK_q), kill )
   , ((modMask, xK_y), spawn $ "polybar-msg cmd toggle" )
   , ((modMask, xK_x), spawn $ "arcolinux-logout" )
   , ((modMask, xK_Escape), spawn $ "xkill" )
   , ((modMask, xK_Return), spawn $ "termite" )
-  , ((modMask , xK_s ), spawn $ "xfce4-appfinder")
+  -- , ((modMask , xK_s ), spawn $ "xfce4-appfinder")
 
 
   -- FUNCTION KEYS
@@ -279,6 +306,12 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   , ((modMask .|. shiftMask, xK_m), promptRestoreWindow ) 
 
 
+	, ((modMask, xK_t), rectFloatFocused )
+	, ((modMask .|. shiftMask, xK_t),  withFocused $ windows . W.sink )
+  , ((modMask, xK_f), fullFloatFocused) 
+  , ((modMask .|. shiftMask, xK_f), withFocused $ windows . W.sink) 
+
+
   ]
   ++
 
@@ -328,8 +361,8 @@ main = do
             --myBaseConfig { keys = belgianKeys <+> keys belgianConfig }
 
                 {startupHook = myStartupHook
-, layoutHook = gaps [(U,35), (D,1), (R,1), (L,1)] $ myLayout ||| layoutHook myBaseConfig
-, manageHook = manageSpawn <+> myManageHook <+> manageHook myBaseConfig
+, layoutHook = gaps [(U,35), (D,1), (R,1), (L,1)] $ mouseResize $ windowArrange $ myLayout ||| layoutHook myBaseConfig
+, manageHook = namedScratchpadManageHook scratchpads <+> manageSpawn <+> myManageHook <+> manageHook myBaseConfig
 , modMask = myModMask
 , borderWidth = myBorderWidth
 , handleEventHook    = handleEventHook myBaseConfig <+> fullscreenEventHook <+> myHandleEventHook

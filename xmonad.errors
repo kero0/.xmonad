@@ -1,0 +1,7 @@
+
+xmonad.hs:309:1: warning: [-Wtabs]
+    Tab character found here, and in one further location.
+    Please use spaces instead.
+    |
+309 |         , ((modMask, xK_t), rectFloatFocused )
+    | ^^^^^^^^
