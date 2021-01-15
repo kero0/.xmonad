@@ -51,15 +51,19 @@ import qualified XMonad.Actions.Search as S
 import XMonad.Layout.Maximize 
 import XMonad.Layout.Minimize
 import XMonad.Hooks.Minimize 
-import XMonad.Actions.Minimize (minimizeWindow, withLastMinimized, maximizeWindowAndFocus, withMinimized)
-import XMonad.Actions.WindowBringer (windowMap)
+import XMonad.Actions.Minimize (minimizeWindow, withLastMinimized, maximizeWindowAndFocus, withMinimized, maximizeWindow)
+import XMonad.Actions.WindowBringer (windowMap, bringMenu, bringMenu', actionMenu)
 import XMonad.Util.Dmenu
 import XMonad.StackSet (focusWindow)
-import XMonad.Actions.WindowBringer (bringMenuArgs, bringWindow)
+import XMonad.Actions.WindowBringer (bringMenuArgs,bringMenuArgs', gotoMenuArgs',bringWindow)
 import qualified XMonad.Util.Dmenu as Dmenu
 import qualified Data.Maybe as Maybe
-import XMonad.Actions.TagWindows (addTag, hasTag, delTag)
+import XMonad.Actions.TagWindows (addTag, hasTag, delTag, withTaggedGlobalP)
 import qualified XMonad.Util.ExtensibleState as XS
+import XMonad.Layout.Hidden
+import qualified Rofi
+
+
 
 
 myStartupHook = do
@@ -136,13 +140,14 @@ myLayout =  spacingRaw True (Border 0 1 1 1) True (Border 1 1 1 1) True $ minimi
 myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
 
     -- mod-button1, Set the window to floating mode and move by dragging
-    [ ((modMask, 1), (\w -> focus w >> mouseMoveWindow w >> windows W.shiftMaster))
+    [ 
+    -- ((modMask, 1), (\w -> focus w >> mouseMoveWindow w >> windows W.shiftMaster))
 
-    -- mod-button2, Raise the window to the top of the stack
-    , ((modMask, 2), (\w -> focus w >> windows W.shiftMaster))
+    -- -- mod-button2, Raise the window to the top of the stack
+    -- , ((modMask, 2), (\w -> focus w >> windows W.shiftMaster))
 
-    -- mod-button3, Set the window to floating mode and resize by dragging
-    , ((modMask, 3), (\w -> focus w >> mouseResizeWindow w >> windows W.shiftMaster))
+    -- -- mod-button3, Set the window to floating mode and resize by dragging
+    -- , ((modMask, 3), (\w -> focus w >> mouseResizeWindow w >> windows W.shiftMaster))
 
     ]
 
@@ -152,18 +157,45 @@ minimizedWindows = withMinimized return
 bringRestored :: Window -> X ()
 bringRestored w = do
   maximizeWindowAndFocus w
+
+-- bringRestoredWindow::()->X()
 bringRestoredWindow = do
   wm <- windowMap
   -- wm <-  ( XS.gets hasTag "Minimized")
-  w <- dmenu (M.keys wm)
+  -- w <- 
+  -- bringMenuArgs' "rofi" ["-dmenu", "-i", "-show", "combi"]
+  -- wm <- filter(\w -> get(hasTag "Minimized" w)) (get (windowMap))
+  key <- menuArgs "rofi" ["-dmenu", "-i", "-show", "combi"] (M.keys wm)
+
+  -- return $ whenJust (get (M.lookup key wm)) bringRestored
+  whenJust (M.lookup key wm) bringRestored
+  -- "rofi -dmenu -show" bringMenuArgs' (M.keys wm)
   -- w <- Maybe.fromMaybe (return ()) temp
-  whenJust (M.lookup w wm) bringRestored
+  -- whenJust (M.lookup w wm) bringRestored
 minimizeFocused :: Window -> X ()
 minimizeFocused w = do
   -- ("Minimized", w) addTag
   -- w (addTag "Minimized")
-  withFocused (addTag "Minimized")
+  -- withFocused (addTag "Minimized")
+  -- withFocused minimizeWindow
   withFocused minimizeWindow
+
+promptRestoreWindow = do
+      wm <- windowMap
+      shownWindows <- withMinimized (\minimizedWindows -> pure $ M.filter (`elem` minimizedWindows) wm)
+      -- win <- Rofi.promptSimple def (M.keys shownWindows)
+      win <- menuArgs "rofi" ["-dmenu", "-i", "-show", "combi"] (M.keys shownWindows)
+      whenJust (M.lookup win wm) (\w -> maximizeWindow w >> (windows $ bringWindow w))
+
+
+-- restoreTag tag = do
+--   wm <- filter(\w -> tag hasTag w) (windowMap)
+--   w <- dmenu (M.keys wm)
+--   -- w <- Maybe.fromMaybe (return ()) temp
+--   whenJust (M.lookup w wm) bringRestored
+
+
+
 
 -- keys config
 
@@ -289,7 +321,9 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 
   , ((modMask, xK_m), withFocused minimizeWindow)
   
-  , ((modMask .|. shiftMask, xK_m), spawn $ "rofi -show window" ) 
+  -- , ((modMask .|. shiftMask, xK_m), bringRestoredWindow ) 
+  , ((modMask .|. shiftMask, xK_m), promptRestoreWindow ) 
+
 
   ]
   ++

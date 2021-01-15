@@ -1,54 +1,59 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, OverloadedStrings #-}
+module Rofi
+  ( asCommand
+  , promptSimple
+  , promptMap
+  , promptRunCommand
+  , showNormal
+  , showCombi
+  , RofiConfig(..)
+  )
+where
 
-module Rofi (asCommand, promptSimple, promptMap, promptRunCommand, showNormal, showCombi) where
-
-import Data.List (intercalate)
-import qualified Data.Map as M
-import XMonad
-import qualified XMonad.Actions.Commands as XCommands
-import qualified XMonad.Util.Dmenu as Dmenu
+import           Data.List                      ( intercalate )
+import qualified Data.Map                      as M
+import           XMonad
+import qualified XMonad.Util.Dmenu             as Dmenu
+import qualified XMonad.Actions.Commands       as XCommands
 
 rofiCmd :: String
 rofiCmd = "rofi"
 
-data RofiConfig = RofiConfig {theme :: String, caseInsensitive :: Bool}
-  deriving (Show, Eq)
+data RofiConfig
+  = RofiConfig { caseInsensitive :: Bool, fuzzy :: Bool } deriving (Show, Eq)
 
 instance Default RofiConfig where
-  def =
-    RofiConfig
-      { theme = "/usr/share/rofi/themes/android_notification.rasi",
-        caseInsensitive = True
-      }
+  def = RofiConfig { caseInsensitive = True, fuzzy = True }
 
 toArgList :: RofiConfig -> [String]
-toArgList RofiConfig {..} =
-  ["-theme " ++ theme, if caseInsensitive then "-i" else ""]
+toArgList RofiConfig {..} = concat
+  [addIf caseInsensitive ["-i"], addIf fuzzy ["-matching", "fuzzy"]]
+  where addIf check list = if check then list else []
 
--- | given an array of arguments, generate a string that would call rofi with the configuration and arguments
+
+
+-- |given an array of arguments, generate a string that would call rofi with the configuration and arguments
 asCommand :: RofiConfig -> [String] -> String
 asCommand config args = unwords $ rofiCmd : toArgList config ++ args
 
--- | Let the user choose an element of a list
+-- |Let the user choose an element of a list
 promptSimple :: MonadIO m => RofiConfig -> [String] -> m String
 promptSimple config = Dmenu.menuArgs rofiCmd ("-dmenu" : toArgList config)
 
--- | Let the user choose an entry of a map by key. return's the chosen value.
+-- |Let the user choose an entry of a map by key. return's the chosen value.
 promptMap :: MonadIO m => RofiConfig -> M.Map String a -> m (Maybe a)
 promptMap config = Dmenu.menuMapArgs rofiCmd ("-dmenu" : toArgList config)
 
--- | Display a list of commands, of which the chosen one will be executed. See `Xmonad.Actions.Commands.runCommandConfig`
-promptRunCommand :: [(String, X ())] -> X ()
-promptRunCommand = XCommands.runCommandConfig $ Rofi.promptSimple def
+-- |Display a list of commands, of which the chosen one will be executed. See `Xmonad.Actions.Commands.runCommandConfig`
+promptRunCommand :: RofiConfig -> [(String, X ())] -> X ()
+promptRunCommand config = XCommands.runCommandConfig (Rofi.promptSimple config)
 
--- | prompt a single rofi mode. ex: `showNormal def "run"`
+-- |prompt a single rofi mode. ex: `showNormal def "run"`
 showNormal :: RofiConfig -> String -> X ()
 showNormal config mode =
   spawn $ asCommand config ["-modi " ++ mode, "-show " ++ mode]
 
--- | Show a rofi combi prompt, combining all given modes
+-- |Show a rofi combi prompt, combining all given modes
 showCombi :: RofiConfig -> [String] -> X ()
-showCombi config modi =
-  spawn $
-    asCommand config ["-show combi", "-combi-modi " ++ intercalate "," modi]
+showCombi config modi = spawn
+  $ asCommand config ["-show combi", "-combi-modi " ++ intercalate "," modi]
