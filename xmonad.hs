@@ -68,7 +68,6 @@ import qualified Data.Maybe as Maybe
 import XMonad.Actions.TagWindows (addTag, hasTag, delTag, withTaggedGlobalP)
 import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Layout.Hidden
-import qualified Rofi
 import XMonad.Util.NamedScratchpad
 import XMonad.ManageHook
 
@@ -149,13 +148,13 @@ myLayout =  spacingRaw True (Border 0 1 1 1) True (Border 1 1 1 1) True $ minimi
 
 myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.empty
 
-myLauncher = "rofi"
 
-minimizedWindows = withMinimized return
 
-minimizeFocused :: Window -> X ()
-minimizeFocused w = do
-  withFocused minimizeWindow
+minimizeSpecific :: Window -> X ()
+minimizeSpecific w = do
+  minimizeWindow w
+  windows W.focusUp
+
 
 promptRestoreWindow = do
       wm <- windowMap
@@ -302,7 +301,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   , ((controlMask .|. modMask , xK_Right), sendMessage Expand)
 
 
-  , ((modMask, xK_m), withFocused minimizeWindow)
+  , ((modMask, xK_m), withFocused minimizeSpecific)
   
   -- , ((modMask .|. shiftMask, xK_m), bringRestoredWindow ) 
   , ((modMask .|. shiftMask, xK_m), promptRestoreWindow ) 
