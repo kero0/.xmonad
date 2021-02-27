@@ -190,7 +190,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 
   [ ((modMask, xK_e), spawn $ "code" )
   , ((modMask, xK_w), spawn $ "google-chrome-stable" )
-  , ((modMask, xK_c), spawn $ "conky-toggle" )
+  -- , ((modMask, xK_c), spawn $ "conky-toggle" )
   , ((modMask, xK_f), sendMessage $ Toggle NBFULL)
   , ((modMask .|. mod1Mask, xK_h), namedScratchpadAction scratchpads "htop" )
   , ((modMask .|. mod1Mask, xK_t), namedScratchpadAction scratchpads "scratchTerminal" )
@@ -199,7 +199,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   , ((modMask, xK_x), spawn $ "arcolinux-logout" )
   , ((modMask, xK_Escape), spawn $ "xkill" )
   , ((modMask, xK_Return), spawn $ "termite" )
-  -- , ((modMask , xK_s ), spawn $ "xfce4-appfinder")
+  , ((modMask , xK_s ), spawn $ "xfce4-appfinder")
 
 
   -- FUNCTION KEYS
@@ -307,8 +307,8 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   , ((modMask .|. shiftMask, xK_m), promptRestoreWindow ) 
 
 
-	, ((modMask, xK_t), rectFloatFocused )
-	, ((modMask .|. shiftMask, xK_t),  withFocused $ windows . W.sink )
+  , ((modMask, xK_t), rectFloatFocused )
+  , ((modMask .|. shiftMask, xK_t),  withFocused $ windows . W.sink )
   , ((modMask, xK_f), fullFloatFocused) 
   , ((modMask .|. shiftMask, xK_f), withFocused $ windows . W.sink) 
 
